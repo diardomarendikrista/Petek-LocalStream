@@ -39,6 +39,10 @@ export const scanFolder = async (rootPath: string) => {
 
     const items = await fs.readdir(currentPath);
 
+    // Sort items naturally to mimic Windows Explorer
+    const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+    items.sort(collator.compare);
+
     for (const item of items) {
       const fullPath = path.join(currentPath, item);
       const stat = await fs.stat(fullPath);
