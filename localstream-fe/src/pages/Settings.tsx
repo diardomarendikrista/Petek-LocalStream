@@ -56,10 +56,14 @@ export default function Settings() {
 
         <button 
           onClick={save}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+          disabled={mutation.isPending}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full disabled:opacity-50"
         >
-          Save Settings
+          {mutation.isPending ? 'Saving...' : 'Save Settings'}
         </button>
+        {mutation.isSuccess && (
+          <p className="text-green-400 text-center text-sm">Settings saved & folder scanned!</p>
+        )}
       </div>
     </div>
   );

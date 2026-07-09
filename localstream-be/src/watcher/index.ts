@@ -1,14 +1,16 @@
-import chokidar from 'chokidar';
 import { scanFolder } from '../scanner';
 
 let watcher: any = null;
 
-export const startWatcher = (folderPath: string) => {
+export const startWatcher = async (folderPath: string) => {
   if (!folderPath) return;
 
   if (watcher) {
     watcher.close();
   }
+
+  // Use dynamic import to load ESM chokidar 5.x inside CommonJS backend
+  const chokidar = (await import('chokidar')).default;
 
   watcher = chokidar.watch(folderPath, {
     ignored: [/(^|[\/\\])\../, /node_modules/], // ignore dotfiles and node_modules

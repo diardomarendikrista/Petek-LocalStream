@@ -1,7 +1,12 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-const settingsPath = path.join(__dirname, '../../../settings.json');
+let settingsPath = path.join(__dirname, '../../../settings.json');
+if (__dirname.includes('app.asar')) {
+  // In production, app.asar is read-only. 
+  // We write settings.json to the same folder where the .exe is located.
+  settingsPath = path.join(process.cwd(), 'settings.json');
+}
 
 export interface Settings {
   folder: string;

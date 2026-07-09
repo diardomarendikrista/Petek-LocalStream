@@ -13,27 +13,26 @@ function startBackend() {
     const backendPath = path.join(__dirname, '../localstream-be');
     backendProcess = spawn('npm', ['run', 'dev'], {
       cwd: backendPath,
-      shell: process.env.ComSpec || 'cmd.exe',
+      shell: true,
     });
+
+    if (backendProcess.stdout) {
+      backendProcess.stdout.on('data', (data) => console.log(`Backend: ${data}`));
+    }
+    if (backendProcess.stderr) {
+      backendProcess.stderr.on('data', (data) => console.error(`Backend Error: ${data}`));
+    }
   } else {
-    // In production, run the compiled backend code directly via Node (embedded in Electron)
-    const backendPath = path.join(__dirname, '../localstream-be/dist/index.js');
-    backendProcess = fork(backendPath, [], {
-      env: { ...process.env, ELECTRON_RUN_AS_NODE: 1 },
-      silent: true
-    });
-  }
-
-  if (backendProcess.stdout) {
-    backendProcess.stdout.on('data', (data) => {
-      console.log(`Backend: ${data}`);
-    });
-  }
-
-  if (backendProcess.stderr) {
-    backendProcess.stderr.on('data', (data) => {
-      console.error(`Backend Error: ${data}`);
-    });
+    // In production standalone mode, import the compiled backend module directly
+    // This removes the dependency on the IDE's npm run dev!
+    try {
+      import('../localstream-be/dist/index.js').catch(err => {
+        const { dialog } = require('electron');
+        dialog.showErrorBox('Backend Crash', err.stack || err.toString());
+      });
+    } catch (err) {
+      console.error(err);
+    }
   }
 }
 
