@@ -1,6 +1,6 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu } = require('electron');
-const path = require('path');
-const { spawn, fork } = require('child_process');
+const { app, BrowserWindow, ipcMain, Tray, Menu } = require("electron");
+const path = require("path");
+const { spawn, fork } = require("child_process");
 // removed axios
 
 let mainWindow;
@@ -10,25 +10,29 @@ let isQuitting = false;
 
 function startBackend() {
   if (!app.isPackaged) {
-    const backendPath = path.join(__dirname, '../localstream-be');
-    backendProcess = spawn('npm', ['run', 'dev'], {
+    const backendPath = path.join(__dirname, "../localstream-be");
+    backendProcess = spawn("npm", ["run", "dev"], {
       cwd: backendPath,
       shell: true,
     });
 
     if (backendProcess.stdout) {
-      backendProcess.stdout.on('data', (data) => console.log(`Backend: ${data}`));
+      backendProcess.stdout.on("data", (data) =>
+        console.log(`Backend: ${data}`),
+      );
     }
     if (backendProcess.stderr) {
-      backendProcess.stderr.on('data', (data) => console.error(`Backend Error: ${data}`));
+      backendProcess.stderr.on("data", (data) =>
+        console.error(`Backend Error: ${data}`),
+      );
     }
   } else {
     // In production standalone mode, import the compiled backend module directly
     // This removes the dependency on the IDE's npm run dev!
     try {
-      import('../localstream-be/dist/index.js').catch(err => {
-        const { dialog } = require('electron');
-        dialog.showErrorBox('Backend Crash', err.stack || err.toString());
+      import("../localstream-be/dist/index.js").catch((err) => {
+        const { dialog } = require("electron");
+        dialog.showErrorBox("Backend Crash", err.stack || err.toString());
       });
     } catch (err) {
       console.error(err);
@@ -55,24 +59,27 @@ function createWindow() {
   });
 
   // Read port from settings.json to avoid hardcoding
-  const fs = require('fs');
-  let settingsPath = path.join(__dirname, '../settings.json');
+  const fs = require("fs");
+  let settingsPath = path.join(__dirname, "../settings.json");
   if (app.isPackaged) {
-    const exeDir = process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(app.getPath('exe'));
-    settingsPath = path.join(exeDir, 'settings.json');
+    const exeDir =
+      process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(app.getPath("exe"));
+    settingsPath = path.join(exeDir, "settings.json");
   }
-  
+
   let port = 4000;
   try {
     if (fs.existsSync(settingsPath)) {
-      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
       if (settings.port) port = settings.port;
     }
   } catch (e) {
-    console.error('Failed to read settings for port', e);
+    console.error("Failed to read settings for port", e);
   }
 
-  const url = app.isPackaged ? `http://localhost:${port}` : 'http://localhost:3000';
+  const url = app.isPackaged
+    ? `http://localhost:${port}`
+    : "http://localhost:3000";
 
   // Wait for server
   mainWindow.loadURL(url).catch(() => {
@@ -81,7 +88,7 @@ function createWindow() {
     }, 3000);
   });
 
-  mainWindow.on('close', (event) => {
+  mainWindow.on("close", (event) => {
     if (!isQuitting) {
       event.preventDefault();
       mainWindow.hide();
@@ -90,10 +97,10 @@ function createWindow() {
 }
 
 function createTray() {
-  const { nativeImage } = require('electron');
-  const iconPath = path.join(__dirname, 'icon.png');
+  const { nativeImage } = require("electron");
+  const iconPath = path.join(__dirname, "icon.png");
   let icon = nativeImage.createFromPath(iconPath);
-  
+
   if (icon.isEmpty()) {
     icon = nativeImage.createEmpty(); // Fallback if still missing
   } else {
@@ -102,18 +109,18 @@ function createTray() {
 
   tray = new Tray(icon);
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Open', click: () => mainWindow.show() },
-    { label: 'Start Backend', click: startBackend },
-    { label: 'Stop Backend', click: stopBackend },
-    { label: 'Quit', click: () => {
+    { label: "Open", click: () => mainWindow.show() },
+    {
+      label: "Quit",
+      click: () => {
         isQuitting = true;
         app.quit();
-      }
-    }
+      },
+    },
   ]);
-  tray.setToolTip('Petek LocalStream');
+  tray.setToolTip("Petek LocalStream");
   tray.setContextMenu(contextMenu);
-  tray.on('click', () => mainWindow.show());
+  tray.on("click", () => mainWindow.show());
 }
 
 app.whenReady().then(() => {
@@ -121,20 +128,22 @@ app.whenReady().then(() => {
   createWindow();
   createTray();
 
-  app.on('activate', function () {
+  app.on("activate", function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
-app.on('before-quit', () => {
+app.on("before-quit", () => {
   stopBackend();
 });
 
-app.on('window-all-closed', function () {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", function () {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
-ipcMain.on('start-backend', () => startBackend());
-ipcMain.on('stop-backend', () => stopBackend());
+ipcMain.on("quit-app", () => {
+  isQuitting = true;
+  app.quit();
+});
