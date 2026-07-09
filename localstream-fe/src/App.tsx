@@ -9,6 +9,7 @@ import {
 } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
+import MobileConnect from "./pages/MobileConnect";
 import WebUI from "./pages/WebUI";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -51,6 +52,12 @@ function Layout() {
             Settings
           </Link>
           <Link
+            to="/mobile"
+            className="px-3 py-2 rounded hover:bg-gray-700 whitespace-nowrap"
+          >
+            Mobile Connect
+          </Link>
+          <Link
             to="/web"
             className="px-3 py-2 rounded hover:bg-gray-700 whitespace-nowrap bg-blue-600 md:bg-transparent"
           >
@@ -69,6 +76,10 @@ function Layout() {
           <Route
             path="/settings"
             element={<Settings />}
+          />
+          <Route
+            path="/mobile"
+            element={<MobileConnect />}
           />
           <Route
             path="/web"

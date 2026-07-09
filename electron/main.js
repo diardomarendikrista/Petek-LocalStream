@@ -54,10 +54,30 @@ function createWindow() {
     autoHideMenuBar: true,
   });
 
-  // Wait for frontend dev server
-  mainWindow.loadURL('http://localhost:4000').catch(() => {
+  // Read port from settings.json to avoid hardcoding
+  const fs = require('fs');
+  let settingsPath = path.join(__dirname, '../settings.json');
+  if (app.isPackaged) {
+    const exeDir = process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(app.getPath('exe'));
+    settingsPath = path.join(exeDir, 'settings.json');
+  }
+  
+  let port = 4000;
+  try {
+    if (fs.existsSync(settingsPath)) {
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      if (settings.port) port = settings.port;
+    }
+  } catch (e) {
+    console.error('Failed to read settings for port', e);
+  }
+
+  const url = app.isPackaged ? `http://localhost:${port}` : 'http://localhost:3000';
+
+  // Wait for server
+  mainWindow.loadURL(url).catch(() => {
     setTimeout(() => {
-      mainWindow.loadURL('http://localhost:4000');
+      mainWindow.loadURL(url);
     }, 3000);
   });
 

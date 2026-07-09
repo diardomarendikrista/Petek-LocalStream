@@ -5,11 +5,13 @@ let settingsPath = path.join(__dirname, '../../../settings.json');
 if (__dirname.includes('app.asar')) {
   // In production, app.asar is read-only. 
   // We write settings.json to the same folder where the .exe is located.
-  settingsPath = path.join(process.cwd(), 'settings.json');
+  const exeDir = process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath);
+  settingsPath = path.join(exeDir, 'settings.json');
 }
 
 export interface Settings {
   folder: string;
+  folderHistory: string[];
   port: number;
   autoStart: boolean;
   startWithWindows: boolean;
@@ -19,6 +21,7 @@ export interface Settings {
 
 const defaultSettings: Settings = {
   folder: '',
+  folderHistory: [],
   port: 4000,
   autoStart: true,
   startWithWindows: false,
